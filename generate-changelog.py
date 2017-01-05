@@ -125,7 +125,7 @@ class Changes:
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Conduce Changelog Generator')
+    parser = argparse.ArgumentParser(description='Changelog Generator')
     parser.add_argument('version_num')
     parser.add_argument('version_codename', nargs='?')
     parser.add_argument('--save', action='store_true',
