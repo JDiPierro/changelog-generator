@@ -137,14 +137,14 @@ def main():
 
     # Generate changelog section
     changes = Changes(cli_args.version_num, cli_args.version_codename)
-    print changes.render()
+    print "{}\n\n".format(changes.render())
 
     if cli_args.save:
         changes.save()
-        print "  - CHANGELOG.md updated"
+        print "CHANGELOG.md updated"
         if cli_args.cleanup:
             changes.cleanup()
-            print "  - Yaml files deleted"
+            print "Yaml files deleted"
 
 if __name__ == "__main__":
     main()
