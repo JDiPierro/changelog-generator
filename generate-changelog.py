@@ -25,16 +25,18 @@ CHANGELOG_TEMPLATE = Template("""
 
 
 class Changes:
-    input_files = []
-    added = []
-    changed = []
-    fixed = []
-    deprecated = []
-    removed = []
-
     def __init__(self, version_num, version_codename):
         self.version_num = version_num
         self.version_codename = version_codename
+        self.input_files = []
+        self.added = []
+        self.changed = []
+        self.fixed = []
+        self.deprecated = []
+        self.removed = []
+        self._rendered = None
+
+        # Start the Engines!
         self.generate()
 
     def generate(self):
@@ -80,6 +82,8 @@ class Changes:
         return section_changes
 
     def render(self):
+        if self._rendered is not None:
+            return self._rendered
         yamlfmt = lambda lst: yaml.dump(lst, default_flow_style=False)
 
         # Build the context for the jinja template
@@ -96,23 +100,22 @@ class Changes:
                 jinja_args[section] = yamlfmt(section_attr)
 
         # Render the jinja template
-        return CHANGELOG_TEMPLATE.render(**jinja_args).strip()
+        self._rendered = CHANGELOG_TEMPLATE.render(**jinja_args).strip()
+        return self._rendered
 
+    def save(self):
+        # Load old changelog data
+        with open("../CHANGELOG.md", 'r') as original_changelog:
+            old_changelog = original_changelog.read()
 
-def save_changes(changes):
-    # Load old changelog data
-    with open("../CHANGELOG.md", 'r') as original_changelog:
-        old_changelog = original_changelog.read()
+        # Write new data to the top of the file
+        with open("../CHANGELOG.md", 'w') as master_changelog:
+            master_changelog.write("{}\n\n{}".format(self.render(), old_changelog))
 
-    # Write new data to the top of the file
-    with open("../CHANGELOG.md", 'w') as master_changelog:
-        master_changelog.write("{}\n\n{}".format(changes, old_changelog))
-
-
-def cleanup(paths):
-    """Delete the files at the specified paths"""
-    for input_file in paths:
-        delete_file(input_file)
+    def cleanup(self):
+        """Delete the files at the specified paths"""
+        for input_file in self.input_files:
+            delete_file(input_file)
 
 
 def main():
@@ -126,18 +129,16 @@ def main():
 
     cli_args = parser.parse_args()
 
-# Generate changelog section
+    # Generate changelog section
     changes = Changes(cli_args.version_num, cli_args.version_codename)
-    new_changes = changes.render()
+    print changes.render()
 
     if cli_args.save:
-        save_changes(new_changes)
-        print "CHANGELOG.md updated"
+        changes.save()
+        print "  - CHANGELOG.md updated"
         if cli_args.cleanup:
-            cleanup(changes.input_files)
-            print "Yaml files deleted"
-    else:
-        print new_changes
+            changes.cleanup()
+            print "  - Yaml files deleted"
 
 if __name__ == "__main__":
     main()
