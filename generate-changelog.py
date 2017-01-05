@@ -5,7 +5,7 @@ from glob import iglob
 from jinja2 import Template
 from datetime import date
 from os import remove as delete_file
-
+from os import path, getcwd
 
 CHANGELOG_SECTIONS = ['added', 'changed', 'fixed', 'deprecated', 'removed']
 CHANGELOG_TEMPLATE = Template("""
@@ -26,6 +26,10 @@ CHANGELOG_TEMPLATE = Template("""
 
 class Changes:
     def __init__(self, version_num, version_codename):
+        scriptdir = path.dirname(path.realpath(__file__))
+        if 'changelogs' not in scriptdir:
+            raise Exception("This script should be located at 'PROJECT/changelogs/generator/generate-changelog.py'")
+        self.base_dir = scriptdir[0:str.find(scriptdir, 'changelogs')]
         self.version_num = version_num
         self.version_codename = version_codename
         self.input_files = []
@@ -41,7 +45,8 @@ class Changes:
 
     def generate(self):
         """ Process each yaml file in the top-level 'changelogs' directory """
-        for clog_path in iglob('../changelogs/*.y*ml'):
+        glob_pattern = '{}/changelogs/*.y*ml'.format(self.base_dir)
+        for clog_path in iglob(glob_pattern):
             self.input_files.append(clog_path)
             with open(clog_path) as clog_file:
                 clog_dict = yaml.load(clog_file)
@@ -105,11 +110,12 @@ class Changes:
 
     def save(self):
         # Load old changelog data
-        with open("../CHANGELOG.md", 'r') as original_changelog:
+        changelog_path = '{}/CHANGELOG.md'.format(self.base_dir)
+        with open(changelog_path, 'r') as original_changelog:
             old_changelog = original_changelog.read()
 
         # Write new data to the top of the file
-        with open("../CHANGELOG.md", 'w') as master_changelog:
+        with open(changelog_path, 'w') as master_changelog:
             master_changelog.write("{}\n\n{}".format(self.render(), old_changelog))
 
     def cleanup(self):
