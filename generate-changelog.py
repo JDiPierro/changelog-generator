@@ -5,7 +5,7 @@ from glob import iglob
 from jinja2 import Template
 from datetime import date
 from os import remove as delete_file
-from os import path, getcwd
+from os import path
 
 CHANGELOG_SECTIONS = ['added', 'changed', 'fixed', 'deprecated', 'removed']
 CHANGELOG_TEMPLATE = Template("""
