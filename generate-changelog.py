@@ -99,10 +99,16 @@ class Changes:
         if self.version_codename:
             jinja_args['version_codename'] = self.version_codename
 
+        have_changes = False
         for section in CHANGELOG_SECTIONS:
             section_attr = getattr(self, section)
             if len(section_attr) > 0:
+                have_changes = True
                 jinja_args[section] = yamlfmt(section_attr)
+
+        if not have_changes:
+            raise Exception("No changes found. " +
+                            "Please ensure properly formatted yaml files are present in the `changelogs` directory.")
 
         # Render the jinja template
         self._rendered = CHANGELOG_TEMPLATE.render(**jinja_args).strip()
