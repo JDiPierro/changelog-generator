@@ -89,7 +89,7 @@ class Changes:
     def render(self):
         if self._rendered is not None:
             return self._rendered
-        yamlfmt = lambda lst: yaml.dump(lst, default_flow_style=False)
+        yamlfmt = lambda lst: yaml.dump(lst, default_flow_style=False, width=1024)
 
         # Build the context for the jinja template
         jinja_args = dict(
