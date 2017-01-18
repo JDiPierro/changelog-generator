@@ -1,0 +1,9 @@
+added:
+  - Something
+  - Foo: Bar
+
+changed:
+  Baz:
+    - Lorem
+    - Ipsum
+    - Dolor
