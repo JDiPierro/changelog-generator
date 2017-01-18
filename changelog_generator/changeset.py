@@ -29,9 +29,14 @@ class Changeset:
         self.version_num = version_num
         self.version_codename = version_codename
         self.input_files = []
-        for section in CHANGELOG_SECTIONS:
-            setattr(self, section, [])
         self._rendered = None
+
+        # Sections
+        self.added = []
+        self.changed = []
+        self.fixed = []
+        self.deprecated = []
+        self.removed = []
 
     def generate(self):
         """ Process each yaml file in the input directory """
@@ -79,10 +84,16 @@ class Changeset:
                 section_changes.append({subsection: changes})
         return section_changes
 
+    def _sort(self):
+        for section in CHANGELOG_SECTIONS:
+            section_changes = getattr(self, section)
+            setattr(self, section, sorted(section_changes))
+
     def render(self):
         if self._rendered is not None:
             return self._rendered
         yamlfmt = lambda lst: yaml.dump(lst, default_flow_style=False, width=1024)
+        self._sort()
 
         # Build the context for the jinja template
         jinja_args = dict(

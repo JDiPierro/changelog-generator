@@ -13,6 +13,15 @@ class ChangelogGeneratorTests(unittest2.TestCase):
     def setUp(self):
         self.changes = Changeset(self.test_dir, "1.0.0", "TestChanges")
 
+    def test_full(self):
+        self.changes.project_dir = self.test_dir
+        self.changes.generate()
+
+        with open("{}/changelogs/rendered".format(self.test_dir)) as full_output_file:
+            expectation = full_output_file.read().strip()
+
+        self.assertEqual(self.changes.render(), expectation)
+
     def test_basic_yaml_loading(self):
         self._add_file("basic")
 
@@ -40,5 +49,18 @@ class ChangelogGeneratorTests(unittest2.TestCase):
         self.assertEqual(self.changes.added[0], {'Foo': 'bar'})
         self.assertEqual(self.changes.added[1], {'Foo': 'baz'})
 
+    def test_sorting(self):
+        change_input = {
+            "added": {
+                "B": "bar",
+                "C": ["foo", "laf"],
+                "A": ["baz"],
+            }
+        }
+        self.changes.add(change_input)
+        self.changes._sort()
 
-
+        self.assertEqual(self.changes.added[0].keys()[0], "A")
+        self.assertEqual(self.changes.added[1].keys()[0], "B")
+        self.assertEqual(self.changes.added[2].keys()[0], "C")
+        self.assertEqual(self.changes.added[3].keys()[0], "C")
