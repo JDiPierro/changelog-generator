@@ -1,6 +1,5 @@
 import unittest2
-from changelog_generator import Changeset
-from changelog_generator.changeset import CHANGELOG_SECTIONS
+from changelog_generator.generate_changelog import Changeset, CHANGELOG_SECTIONS
 from os import path
 
 
