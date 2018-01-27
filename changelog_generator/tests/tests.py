@@ -1,6 +1,7 @@
 import unittest2
 from changelog_generator.generate_changelog import Changeset, CHANGELOG_SECTIONS
 from os import path
+from freezegun import freeze_time
 
 
 class ChangelogGeneratorTests(unittest2.TestCase):
@@ -10,7 +11,8 @@ class ChangelogGeneratorTests(unittest2.TestCase):
         self.changes.add_file("{}/changelogs/{}.yml".format(self.test_dir, sample_name))
 
     def setUp(self):
-        self.changes = Changeset(self.test_dir, "1.0.0", "TestChanges")
+        test_changelogs_dir = "{}/changelogs".format(self.test_dir)
+        self.changes = Changeset(test_changelogs_dir, "1.0.0", "TestChanges")
 
     def test_full(self):
         self.changes.project_dir = self.test_dir
@@ -19,7 +21,8 @@ class ChangelogGeneratorTests(unittest2.TestCase):
         with open("{}/changelogs/rendered".format(self.test_dir)) as full_output_file:
             expectation = full_output_file.read().strip()
 
-        self.assertEqual(self.changes.render(), expectation)
+        with freeze_time("2017-01-18"):
+            self.assertEqual(self.changes.render(), expectation)
 
     def test_basic_yaml_loading(self):
         self._add_file("basic")

@@ -1,9 +1,9 @@
 # 1.0.0 "TestChanges" - 2017-01-18
 ## Added
-- Something
 - Foo: Bar
+- Something
 
 ## Changed
-- Baz: Lorem
-- Baz: Ipsum
 - Baz: Dolor
+- Baz: Ipsum
+- Baz: Lorem

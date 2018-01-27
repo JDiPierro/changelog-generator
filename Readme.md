@@ -4,18 +4,14 @@ Avoid changelog related merge conflicts by having a separate file for each set o
 
 ## Usage
 
-Register this repository as a submodule of your project located at `${project_root}/changelogs/generator`
-
-`git submodule add git@github.com:ConduceInc/changelog-generator.git changelogs/generator`
-
 During your development process add yaml files to the `changelogs` folder.
 
-During your build process call the generator with the `--save` and `--cleanup` flags:
+During your build process you can use our docker image to generate your changelog:
 
 Jenkinsfile example:
 ```groovy
 stage("Update changelog") {
-    sh "python changelogs/generator/generate-changelog.py ${version} --save --cleanup"
+    sh "docker run --rm --mount src="$(pwd)",target=/project,type=bind jdipierro/yamlclog:0.1.0 ${version} --save --cleanup"
     sh "git add -A changelogs/"
     sh "git add CHANGELOG.md"
     sh "git commit -m 'Jenkins updated changelog for version ${version}'"
@@ -23,13 +19,18 @@ stage("Update changelog") {
 }
 ```
 
-Now you're keeping a changelog!
+The generator is only a single file so you could also pull it into your own codebase and run it directly:
 
-## Changelog Files
+```bash
+python generate_changelog.py ${version} --save --cleanup
+```
+
+
+### Changelog Files
 
 All files in the `changelogs` directory that end in `.yml` or `.yaml` will be pulled into the generated changelog. The name of the file is not used.
 
-Each file should define a dictionary with at least one key containing a list or dictionary. Top level keys should be one of `['added', 'fixed', 'changed', 'deprecated', 'removed']`. More information on when to use each is available at [KeepAChangelog](http://keepachangelog.com).
+Each file should define a dictionary with at least one key containing a list or dictionary. Top level keys should be one of `['added', 'fixed', 'changed', 'deprecated', 'removed', 'security']`. More information on when to use each is available at [KeepAChangelog](http://keepachangelog.com).
 
 ```yaml
 added:

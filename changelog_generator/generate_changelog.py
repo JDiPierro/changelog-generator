@@ -1,18 +1,42 @@
 #!/usr/bin/env python
+
+#  MIT License
+#
+#  Copyright (c) 2018 Justin DiPierro
+#
+#  Permission is hereby granted, free of charge, to any person obtaining a copy
+#  of this software and associated documentation files (the "Software"), to deal
+#  in the Software without restriction, including without limitation the rights
+#  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+#  copies of the Software, and to permit persons to whom the Software is
+#  furnished to do so, subject to the following conditions:
+#
+#  The above copyright notice and this permission notice shall be included in all
+#  copies or substantial portions of the Software.
+#
+#  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+#  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+#  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+#  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+#  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+#  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+#  SOFTWARE.
+
 __doc__ = """
 Yaml Changelog Generator
 
+Environment Variables:
+  YAMLCLOG_INPUT            Folder of yaml changelogs. [default: ./changelogs]
+  YAMLCLOG_MARKDOWN         Path to the CHANGELOG.md file to prepend the new section to, when saving. [default: ./CHANGELOG.md]
+
 Usage:
-  generate_changelog <version_num> [<yamls_folder>] [options]
-  generate_changelog save <version_num> [<yamls_folder> <markdown_file>] [options]
+  generate_changelog <version_num> [<yamls_folder> <markdown_file>] [options]
 
 Options:
   -h --help                 Show this screen.
-  
-Save Options:               Writes the changelog, also prints to stdoutd.
   version_num               The version number being written.
-  yamls_folder              Folder of yaml changelogs. [default: ./changelogs]
   --codename=<codename>     Optional codename to display in the header for this version.
+  --save                    Writes the changelog, also prints to stdoutd.
   --cleanup                 Delete yaml files when finished.
 """
 
@@ -23,6 +47,7 @@ from jinja2 import Template
 from docopt import docopt
 from datetime import date
 from os import remove as delete_file
+import os
 
 CHANGELOG_SECTIONS = ['added', 'changed', 'fixed', 'deprecated', 'removed', 'security']
 CHANGELOG_TEMPLATE = Template("""
@@ -132,7 +157,7 @@ class Changeset:
         
         if not have_changes:
             raise Exception("No changes found. " +
-                            "Please ensure properly formatted yaml files are present in the `changelogs` directory.")
+                            "Please ensure properly formatted yaml files are present in: {}".format(self.input_dir))
         
         # Render the jinja template
         self._rendered = CHANGELOG_TEMPLATE.render(**jinja_args).strip()
@@ -156,17 +181,17 @@ class Changeset:
 def main():
     cli_args = docopt(__doc__)
 
-    input_dir = cli_args['<yamls_folder>'] or './changelogs'
+    input_dir = os.environ.get('YAMLCLOG_INPUT', './changelogs')
+    markdown_file = os.environ.get('YAMLCLOG_MARKDOWN', './CHANGELOG.md')
     version = cli_args['<version_num>']
     codename = cli_args['--codename']
-    markdown_file = cli_args['<markdown_file>'] or 'CHANGELOG.md'
 
     # Generate new changelog section
     changes = Changeset(input_dir, version, codename)
     changes.generate()
     print "{}\n\n".format(changes.render())
 
-    if cli_args['save']:
+    if cli_args['--save']:
         changes.save(markdown_file)
         print "CHANGELOG.md updated"
         if cli_args['--cleanup']:

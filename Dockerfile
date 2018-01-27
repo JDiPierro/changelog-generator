@@ -7,4 +7,7 @@ RUN pip install --no-cache-dir -r requirements.pip
 
 COPY changelog_generator .
 
-CMD [ "python", "./generate_changelog.py", "save", "$VERSION", "/changelog_yamls", ]
+ENV YAMLCLOG_INPUT /project/changelogs
+ENV YAMLCLOG_MARKDOWN /project/CHANGELOG.md
+
+ENTRYPOINT ["python", "generate_changelog.py"]
